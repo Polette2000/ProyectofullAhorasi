@@ -1,4 +1,4 @@
-package cl.duoc.Perfulandiabilling.Security;
+package cl.duoc.VentasPerfulandia.security;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,49 +31,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-
         String header = request.getHeader("Authorization");
 
-        // Si no viene token, sigue al siguiente filtro
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            // Extrae token
             String token = header.substring(7);
 
-            // Valida JWT
             DecodedJWT jwt = JWT.require(Algorithm.HMAC256(secret))
                     .withIssuer("login-service")
                     .build()
                     .verify(token);
 
-            // Usuario
             String username = jwt.getSubject();
-
-            // Roles
             List<String> roles = jwt.getClaim("roles").asList(String.class);
+
             if (roles == null) {
                 roles = List.of();
             }
 
-            // Convierte roles a authorities
             List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
-            // Crea autenticación
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            username,
-                            null,
-                            authorities
-                    );
+                    new UsernamePasswordAuthenticationToken(username, null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;

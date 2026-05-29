@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-UsuarioPerfulandiaApplication<UsuarioPerfulandia>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cl.duoc.UsuarioPerfulandiaApplication",
+            "projectName": "UsuarioPerfulandia",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TokenPerfulandiaApplication<TokenPerfulandia>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cl.duoc.TokenPerfulandia.TokenPerfulandiaApplication",
+            "projectName": "TokenPerfulandia",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

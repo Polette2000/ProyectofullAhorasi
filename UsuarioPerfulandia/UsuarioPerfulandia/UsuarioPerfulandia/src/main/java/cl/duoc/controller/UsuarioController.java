@@ -49,7 +49,7 @@ public class UsuarioController {
     }
 
     @PostMapping("/validar-login")
-    public ResponseEntity<UsuarioValidacionResponseDto> validarLogin(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<UsuarioValidacionResponseDto> validarLogin(@Valid @RequestBody LoginRequestDto request) {
         return ResponseEntity.ok(usuarioService.validarLogin(request));
     }
 
