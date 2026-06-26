@@ -1,0 +1,21 @@
+# Puerto donde se levanta Eureka Server.
+# Tambien sera la URL del panel web: http://localhost:8761
+server:
+  port: 8761
+
+# Nombre de la aplicacion dentro del ecosistema Spring.
+spring:
+  application:
+    name: EUREKA-SERVER
+
+# Eureka Server no debe registrarse a si mismo como cliente.
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

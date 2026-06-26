@@ -1,0 +1,11 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: EUREKA-SERVER-TEST
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false

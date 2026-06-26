@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Archivo de configuracion de Logback para carrito-service.
+    Define:
+    - salida de logs por consola
+    - salida de logs en archivo JSON
+    - rotacion diaria de archivos
+    - nivel global de logs
+-->
+<configuration>
+
+    <!-- Nombre del microservicio, usado en los logs JSON -->
+    <property name="APP_NAME" value="carrito-service"/>
+
+    <!--
+        APPENDER CONSOLA
+        Envia los logs a la consola, terminal, IDE o Docker logs.
+    -->
+    <appender name="CONSOLE"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!--
+        APPENDER JSON
+        Guarda logs estructurados en archivo JSON para observabilidad.
+    -->
+    <appender name="JSON"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <!-- Archivo actual de logs del microservicio carrito -->
+        <file>logs/carrito-service.json</file>
+
+        <!-- Crea un archivo nuevo por dia y conserva 30 dias -->
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>
+                logs/carrito-service-%d{yyyy-MM-dd}.json
+            </fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <!-- Encoder JSON estructurado -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app":"${APP_NAME}"}</customFields>
+        </encoder>
+
+    </appender>
+
+    <!--
+        ROOT LOGGER
+        Nivel INFO muestra INFO, WARN y ERROR.
+    -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="JSON"/>
+    </root>
+
+</configuration>

@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "UsuarioPerfulandia",
+			"path": "."
+		}
+	],
+	"settings": {
+		"java.compile.nullAnalysis.mode": "automatic"
+	}
+}

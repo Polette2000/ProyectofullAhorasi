@@ -1,0 +1,7 @@
+CREATE TABLE usuario (
+    id_usuario BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    contrasena VARCHAR(100) NOT NULL,
+    rol VARCHAR(50) NOT NULL,
+    enabled BOOLEAN NOT NULL
+);

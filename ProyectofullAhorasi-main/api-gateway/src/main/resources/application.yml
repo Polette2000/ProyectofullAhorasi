@@ -1,0 +1,88 @@
+# Puerto publico del Gateway.
+# Desde ahora Postman o el frontend pueden llamar a http://localhost:8080.
+server:
+  port: 8080
+
+spring:
+  application:
+    name: API-GATEWAY
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: auth-service-profesor
+              uri: lb://AUTH-SERVICE
+              predicates:
+                - Path=/api/v1/auth/**
+              filters:
+                - RewritePath=/api/v1/auth/(?<segment>.*), /api/token/v1/$\{segment}
+
+            - id: auth-service
+              uri: lb://AUTH-SERVICE
+              predicates:
+                - Path=/api/token/v1/**
+
+            - id: carrito-service
+              uri: lb://CARRITO-SERVICE
+              predicates:
+                - Path=/api/v1/carrito/**
+
+            - id: producto-service
+              uri: lb://PRODUCTO-SERVICE
+              predicates:
+                - Path=/api/v1/productos/**
+
+            - id: proveedor-service
+              uri: lb://PROVEEDOR-SERVICE
+              predicates:
+                - Path=/api/v1/proveedores/**
+
+            - id: inventory-service
+              uri: lb://INVENTORY-SERVICE
+              predicates:
+                - Path=/api/v1/inventory/**
+
+            - id: order-service
+              uri: lb://ORDER-SERVICE
+              predicates:
+                - Path=/api/v1/pedidos/**
+
+            - id: billing-service
+              uri: lb://BILLING-SERVICE
+              predicates:
+                - Path=/api/v1/billing/**
+
+            - id: shipping-service
+              uri: lb://SHIPPING-SERVICE
+              predicates:
+                - Path=/api/v1/envios/**
+
+            - id: usuario-service
+              uri: lb://USUARIO-SERVICE
+              predicates:
+                - Path=/api/v1/usuarios/**
+
+            - id: sucursales-service
+              uri: lb://SUCURSALES-SERVICE
+              predicates:
+                - Path=/api/v1/sucursales/**
+
+            - id: comunas-service
+              uri: lb://SUCURSALES-SERVICE
+              predicates:
+                - Path=/api/v1/comunas/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

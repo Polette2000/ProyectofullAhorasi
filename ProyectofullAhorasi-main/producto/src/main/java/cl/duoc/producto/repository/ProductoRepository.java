@@ -1,0 +1,14 @@
+package cl.duoc.producto.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import cl.duoc.producto.model.Producto;
+
+@Repository
+public interface ProductoRepository extends JpaRepository<Producto, Long> {
+
+    List<Producto> findByNombreContainingIgnoreCase(String nombre);
+}

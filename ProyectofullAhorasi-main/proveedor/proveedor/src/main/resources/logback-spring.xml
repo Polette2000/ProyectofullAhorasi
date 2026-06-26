@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Configuracion de Logback para proveedor-service.
+    Genera logs en consola y en archivos JSON dentro de la carpeta logs.
+-->
+<configuration>
+
+    <!-- Nombre del microservicio usado dentro del log JSON -->
+    <property name="APP_NAME" value="proveedor-service"/>
+
+    <!-- Logs visibles en consola/terminal -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logs estructurados en formato JSON -->
+    <appender name="JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/proveedor-service.json</file>
+
+        <!-- Crea un archivo nuevo por dia y conserva 30 dias -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/proveedor-service-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"proveedor-service"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Nivel global de logs -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="JSON"/>
+    </root>
+
+</configuration>
