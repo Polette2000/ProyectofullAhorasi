@@ -1,118 +1,323 @@
-# Proyecto Full Ahorasi - Perfulandia
+# Perfulandia Backend
 
-Proyecto grupal desarrollado con microservicios Spring Boot para gestionar los procesos principales de Perfulandia: usuarios, autenticacion, productos, proveedores, inventario, carrito, pedidos, facturacion, envios, sucursales y ventas.
+Plataforma backend para la gestión integral de Perfulandia, desarrollada con
+Java y Spring Boot bajo una arquitectura de microservicios.
 
+El sistema separa cada dominio de negocio en un servicio independiente, con su
+propia API REST y base de datos. La comunicación se centraliza mediante API
+Gateway, mientras Eureka permite registrar y descubrir los servicios disponibles.
+
+## Funcionalidades
+
+- Gestión de usuarios y autenticación mediante JWT.
+- Administración de productos y proveedores.
+- Control de inventario por producto y sucursal.
+- Gestión del carrito de compras.
+- Creación y seguimiento de pedidos.
+- Registro de pagos y emisión de facturas.
+- Gestión de despachos y números de seguimiento.
+- Administración de sucursales y comunas.
+- Confirmación, consulta y anulación de ventas.
+
+## Arquitectura
+
+```mermaid
+flowchart TB
+    C[Cliente / Postman / Swagger] --> G[API Gateway :8080]
+    G --> AU[Autenticación :8085]
+    G --> US[Usuarios :8801]
+    G --> PR[Productos :8084]
+    G --> PV[Proveedores :8083]
+    G --> IN[Inventario :8082]
+    G --> CA[Carrito :8086]
+    G --> PE[Pedidos :8087]
+    G --> FA[Facturación :8088]
+    G --> EN[Envíos :8089]
+    G --> SU[Sucursales :8090]
+    VE[Ventas :8091]
+
+    G -. consulta .-> EU[Eureka Server :8761]
+    AU & US & PR & PV & IN & CA & PE & FA & EN & SU -. registro .-> EU
+
+    AU --> DBA[(MySQL)]
+    US --> DBU[(MySQL)]
+    PR --> DBP[(MySQL)]
+    PV --> DBPV[(MySQL)]
+    IN --> DBI[(MySQL)]
+    CA --> DBC[(MySQL)]
+    PE --> DBPE[(MySQL)]
+    FA --> DBF[(MySQL)]
+    EN --> DBE[(MySQL)]
+    SU --> DBS[(MySQL)]
+    VE --> DBV[(MySQL)]
+```
+
+### Principios aplicados
+
+- Separación por dominios de negocio.
+- Arquitectura en capas: Controller, Service, Repository y Model.
+- DTOs específicos para solicitudes y respuestas.
+- Persistencia independiente por microservicio.
+- Migraciones de esquema y datos con Flyway.
+- Autenticación stateless con tokens JWT.
+- Descubrimiento de servicios mediante Eureka.
+- Enrutamiento centralizado mediante API Gateway.
+- Configuración diferenciada por ambiente.
+
+## Tecnologías
+
+| Categoría | Tecnologías |
+| --- | --- |
+| Lenguaje y plataforma | Java 21, Spring Boot, Maven |
+| APIs | Spring Web MVC, REST, Swagger/OpenAPI |
+| Persistencia | Spring Data JPA, Hibernate, MySQL, Flyway |
+| Seguridad | Spring Security, JWT |
+| Infraestructura | Spring Cloud Gateway, Netflix Eureka, Docker Compose |
+| Pruebas | JUnit 5, Mockito, H2 |
+| Utilidades | Jakarta Validation, Lombok, Logback |
 
 ## Microservicios
 
-| Servicio | Ruta | Puerto dev | Base de datos |
-| --- | --- | ---: | --- |
-| Inventario | `inventory-service (1)/inventory-service` | 8082 | `db_inventory` |
-| Proveedores | `proveedor/proveedor` | 8083 | `db_proveedores` |
-| Productos | `producto/producto` | 8084 | `db_productos` |
-| Token | `TokenPerfulandia/TokenPerfulandia/TokenPerfulandia` | 8085 | `bd_token_perfulandia` |
-| Carrito | `carrito-service/carrito-service` | 8086 | `db_carrito` |
-| Pedidos | `PerfulandiaOrder/PerfulandiaOrder/PerfulandiaOrder` | 8087 | `db_pedidos` |
-| Facturacion | `facturacion-service/facturacion-service/Perfulandiabilling` | 8088 | `db_facturacion` |
-| Envios | `envios-service/envios-service/Perfulandiashipping` | 8089 | `db_envios` |
-| Sucursales | `SucursalesPerfulandia/SucursalesPerfulandia/SucursalesPerfulandia` | 8090 | `db_sucursales` |
-| Ventas | `VentasPerfulandia` | 8091 | `db_ventas` |
-| Usuarios | `UsuarioPerfulandia/UsuarioPerfulandia/UsuarioPerfulandia` | 8801 | `user_service_db` |
+| Dominio | Puerto | Ruta base | Base de datos |
+| --- | ---: | --- | --- |
+| Inventario | 8082 | `/api/v1/inventory` | `db_inventory` |
+| Proveedores | 8083 | `/api/v1/proveedores` | `db_proveedores` |
+| Productos | 8084 | `/api/v1/productos` | `db_productos` |
+| Autenticación | 8085 | `/api/token/v1` | `bd_token_perfulandia` |
+| Carrito | 8086 | `/api/v1/carrito` | `db_carrito` |
+| Pedidos | 8087 | `/api/v1/pedidos` | `db_pedidos` |
+| Facturación | 8088 | `/api/v1/billing` | `db_facturacion` |
+| Envíos | 8089 | `/api/v1/envios` | `db_envios` |
+| Sucursales | 8090 | `/api/v1/sucursales` | `db_sucursales` |
+| Comunas | 8090 | `/api/v1/comunas` | `db_sucursales` |
+| Ventas | 8091 | `/api/v1/ventas` | `db_ventas` |
+| Usuarios | 8801 | `/api/v1/usuarios` | `user_service_db` |
 
-## Requisitos
+### Servicios de infraestructura
 
-- Java 21
-- Maven Wrapper incluido en cada microservicio
-- MySQL local
+| Servicio | Puerto | Responsabilidad |
+| --- | ---: | --- |
+| API Gateway | 8080 | Punto de entrada y enrutamiento |
+| Eureka Server | 8761 | Registro y descubrimiento de servicios |
 
-## Integrantes
+## Flujo general
 
-- Polette Agunanna
-- Ruth Honorio
-- Darling Pinol
+1. El cliente solicita un token al servicio de autenticación.
+2. El servicio valida las credenciales y emite un JWT.
+3. El cliente envía el token en las solicitudes protegidas.
+4. API Gateway identifica la ruta y localiza el servicio mediante Eureka.
+5. El microservicio valida el token y procesa la operación.
+6. La capa Service aplica las reglas de negocio.
+7. La capa Repository accede a la base de datos correspondiente.
+8. El resultado se devuelve como una respuesta HTTP en formato JSON.
 
-## Funcionalidades implementadas
+## Autenticación
 
-- Gestion de usuarios y validacion de login.
-- Generacion de token de autenticacion.
-- Gestion de productos.
-- Gestion de proveedores.
-- Gestion de inventario por producto y sucursal.
-- Gestion de carrito de compras por usuario.
-- Creacion y consulta de pedidos.
-- Gestion de pagos y facturas.
-- Gestion de envios y numeros de seguimiento.
-- Gestion de sucursales y comunas.
-- Confirmacion y consulta de ventas.
-- Persistencia de datos con MySQL.
-- Migraciones de base de datos con Flyway.
+Endpoint de inicio de sesión:
+
+```http
+POST http://localhost:8085/api/token/v1/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "usuario@perfulandia.cl",
+  "contrasena": "user123"
+}
+```
+
+Credenciales de demostración:
+
+| Perfil | Correo | Contraseña |
+| --- | --- | --- |
+| Usuario | `usuario@perfulandia.cl` | `user123` |
+| Administrador | `admin@perfulandia.cl` | `admin123` |
+
+El token debe enviarse en la cabecera:
+
+```http
+Authorization: Bearer <token>
+```
+
+## API Gateway
+
+El Gateway se encuentra en `http://localhost:8080` y enruta las solicitudes a
+los servicios registrados en Eureka.
+
+Ejemplos:
+
+```text
+http://localhost:8080/api/token/v1/login
+http://localhost:8080/api/v1/usuarios
+http://localhost:8080/api/v1/productos
+http://localhost:8080/api/v1/proveedores
+http://localhost:8080/api/v1/inventory
+http://localhost:8080/api/v1/carrito
+http://localhost:8080/api/v1/pedidos
+http://localhost:8080/api/v1/billing
+http://localhost:8080/api/v1/envios
+http://localhost:8080/api/v1/sucursales
+http://localhost:8080/api/v1/comunas
+```
+
+El servicio de Ventas se consume directamente en el puerto `8091`, ya que no
+tiene una ruta definida en la configuración actual del Gateway.
+
+## Documentación de APIs
+
+Los microservicios configurados con Springdoc exponen Swagger UI en:
+
+```text
+http://localhost:<puerto>/doc/swagger-ui.html
+```
+
+Ejemplos:
+
+| Servicio | Swagger |
+| --- | --- |
+| Inventario | <http://localhost:8082/doc/swagger-ui.html> |
+| Proveedores | <http://localhost:8083/doc/swagger-ui.html> |
+| Productos | <http://localhost:8084/doc/swagger-ui.html> |
+| Autenticación | <http://localhost:8085/doc/swagger-ui.html> |
+| Carrito | <http://localhost:8086/doc/swagger-ui.html> |
+| Pedidos | <http://localhost:8087/doc/swagger-ui.html> |
+| Facturación | <http://localhost:8088/doc/swagger-ui.html> |
+| Envíos | <http://localhost:8089/doc/swagger-ui.html> |
+| Sucursales | <http://localhost:8090/doc/swagger-ui.html> |
+| Usuarios | <http://localhost:8801/doc/swagger-ui.html> |
+
+Para endpoints protegidos, seleccionar **Authorize** y pegar únicamente el JWT.
 
 ## Bases de datos
 
-Antes de levantar los servicios, crear las bases de datos MySQL. El archivo `crear_bases_perfulandia.sql` contiene las sentencias base para crearlas.
+Cada microservicio utiliza una base independiente. El script
+`crear_bases_perfulandia.sql` contiene la creación de todas las bases necesarias
+para la ejecución local.
 
-Cada microservicio usa Flyway y ejecuta sus migraciones desde:
+```powershell
+Get-Content .\crear_bases_perfulandia.sql | mysql -u root -p
+```
+
+Las migraciones se encuentran dentro de cada módulo:
 
 ```text
 src/main/resources/db/migration
 ```
 
-## Ejecucion
+Flyway crea las tablas, carga los datos iniciales y registra las versiones
+aplicadas en `flyway_schema_history`.
 
-Cada microservicio se ejecuta por separado desde su propia carpeta, usando el perfil `dev`.
+## Ejecución local
 
-Ejemplo:
+### Requisitos
+
+- JDK 21.
+- Maven 3.9 o Maven Wrapper.
+- MySQL 8.
+
+1. Crear las bases de datos con el script incluido.
+2. Iniciar `eureka-server`.
+3. Iniciar los microservicios requeridos con el perfil `dev`.
+4. Iniciar `api-gateway` para consumirlos desde el puerto 8080.
+
+Ejemplo de ejecución de un microservicio:
 
 ```powershell
-cd producto/producto
-.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
+cd proveedor/proveedor
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Para compilar sin ejecutar tests:
+Eureka permite comprobar los servicios registrados en:
+
+<http://localhost:8761>
+
+## Pruebas automatizadas
+
+El proyecto contiene pruebas unitarias y de integración distribuidas entre los
+microservicios. Según el módulo, se validan:
+
+- lógica de negocio con JUnit y Mockito;
+- controladores y respuestas HTTP;
+- repositorios y persistencia con H2;
+- filtros de seguridad y validación de JWT;
+- operaciones CRUD y escenarios de error.
+
+Para ejecutar las pruebas de un servicio:
 
 ```powershell
-.\mvnw.cmd -DskipTests package
+cd <directorio-del-microservicio>
+mvn test
 ```
 
-## Pruebas de endpoints
+Los resultados se generan en `target/surefire-reports` dentro de cada módulo.
 
-Los endpoints fueron probados con Postman. Para probarlos, primero se debe levantar el microservicio correspondiente y luego enviar las solicitudes HTTP al puerto configurado.
+## Alcance de la defensa
 
-Ejemplos de URLs base:
+Para la demostración solicitada en la evaluación se seleccionó el microservicio
+**Producto**. Sobre este servicio se preparó el despliegue Docker y se verificaron
+pruebas unitarias y de integración, sin convertirlo en el único foco del sistema.
+
+El entorno de defensa definido en `docker-compose.yml` levanta:
+
+- API Gateway;
+- Eureka Server;
+- Producto Service;
+- MySQL con `db_productos`.
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+Comprobaciones principales:
+
+| Recurso | URL |
+| --- | --- |
+| Gateway | <http://localhost:8080/actuator/health> |
+| Eureka | <http://localhost:8761> |
+| Swagger de Producto | <http://localhost:8084/doc/swagger-ui.html> |
+| Producto por Gateway | <http://localhost:8080/api/v1/productos> |
+
+La suite seleccionada contiene 8 pruebas de Producto: 5 unitarias con Mockito y
+3 de integración con JPA, H2 y Flyway.
+
+```powershell
+cd producto
+mvn test
+```
+
+Resultado verificado:
 
 ```text
-http://localhost:8082/api/v1/inventory
-http://localhost:8083/api/v1/proveedores
-http://localhost:8084/api/v1/productos
-http://localhost:8085/api/token/v1
-http://localhost:8086/api/v1/carrito
-http://localhost:8087/api/v1/pedidos
-http://localhost:8088/api/v1/billing
-http://localhost:8089/api/v1/envios
-http://localhost:8090/api/v1/sucursales
-http://localhost:8090/api/v1/comunas
-http://localhost:8091/api/v1/ventas
-http://localhost:8801/api/v1/usuarios
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
 ```
 
-## Estructura del Proyecto
-
-El proyecto esta organizado como un conjunto de microservicios Spring Boot. Cada servicio tiene su propio puerto, base de datos, configuracion, controladores, servicios, repositorios, modelos, DTOs y migraciones Flyway.
+## Estructura del repositorio
 
 ```text
-ProyectofullAhorasi-main/
-├── carrito-service/              # Puerto 8086
-├── envios-service/               # Puerto 8089
-├── facturacion-service/          # Puerto 8088
-├── inventory-service (1)/        # Puerto 8082
-├── PerfulandiaOrder/             # Puerto 8087
-├── producto/                     # Puerto 8084
-├── proveedor/                    # Puerto 8083
-├── SucursalesPerfulandia/        # Puerto 8090
-├── TokenPerfulandia/             # Puerto 8085
-├── UsuarioPerfulandia/           # Puerto 8801
-├── VentasPerfulandia/            # Puerto 8091
-├── crear_bases_perfulandia.sql
-└── README.md
+.
+|-- api-gateway/                 # Enrutamiento centralizado
+|-- eureka-server/               # Registro de servicios
+|-- UsuarioPerfulandia/          # Usuarios
+|-- TokenPerfulandia/            # Autenticación
+|-- producto/                    # Productos
+|-- proveedor/                   # Proveedores
+|-- inventory-service (1)/       # Inventario
+|-- carrito-service/             # Carrito
+|-- PerfulandiaOrder/            # Pedidos
+|-- facturacion-service/         # Facturación
+|-- envios-service/              # Envíos
+|-- SucursalesPerfulandia/       # Sucursales y comunas
+|-- VentasPerfulandia/           # Ventas
+|-- mysql/init/                  # Inicialización para Docker
+|-- crear_bases_perfulandia.sql  # Bases para ejecución local
+`-- docker-compose.yml           # Entorno de la defensa
 ```
 
+## Equipo
+
+- Polette Agunanna
+- Ruth Honorio
+- Darling Pinol

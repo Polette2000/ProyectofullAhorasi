@@ -1,0 +1,68 @@
+services:
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    networks:
+      - producto-network
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-producto
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-system}
+    volumes:
+      - mysql_producto_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - producto-network
+
+  producto-service:
+    build: ./producto
+    container_name: producto-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-system}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-clave_secreta_perfulandia_123456789_usuarios}
+    ports:
+      - "8084:8084"
+    depends_on:
+      eureka-server:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    networks:
+      - producto-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      eureka-server:
+        condition: service_started
+      producto-service:
+        condition: service_started
+    networks:
+      - producto-network
+
+volumes:
+  mysql_producto_data:
+
+networks:
+  producto-network:
+    driver: bridge

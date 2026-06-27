@@ -1,6 +1,9 @@
 target/
+.env
+logs/
 .vscode/
 .idea/
+*.code-workspace
 *.class
 *.log
 
