@@ -7,10 +7,6 @@ El sistema separa cada dominio de negocio en un servicio independiente, con su
 propia API REST y base de datos. La comunicación se centraliza mediante API
 Gateway, mientras Eureka permite registrar y descubrir los servicios disponibles.
 
-> El código fuente y los archivos de ejecución se encuentran en
-> `ProyectofullAhorasi-main`. Antes de utilizar los comandos de esta guía, ejecutar
-> `cd ProyectofullAhorasi-main` desde la raíz del repositorio.
-
 ## Funcionalidades
 
 - Gestión de usuarios y autenticación mediante JWT.
