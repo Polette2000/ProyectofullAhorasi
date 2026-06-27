@@ -19,49 +19,83 @@ Gateway, mientras Eureka permite registrar y descubrir los servicios disponibles
 - Administración de sucursales y comunas.
 - Confirmación, consulta y anulación de ventas.
 
-## Arquitectura
+## Arquitectura del Proyecto
 
-```mermaid
-flowchart TB
-    C[Cliente / Postman / Swagger] --> G[API Gateway :8080]
-    G --> AU[Autenticación :8085]
-    G --> US[Usuarios :8801]
-    G --> PR[Productos :8084]
-    G --> PV[Proveedores :8083]
-    G --> IN[Inventario :8082]
-    G --> CA[Carrito :8086]
-    G --> PE[Pedidos :8087]
-    G --> FA[Facturación :8088]
-    G --> EN[Envíos :8089]
-    G --> SU[Sucursales :8090]
-    VE[Ventas :8091]
+El proyecto utiliza una arquitectura de microservicios. Internamente, cada
+microservicio está organizado en capas para separar la exposición de endpoints,
+la lógica de negocio, el acceso a datos y la persistencia.
 
-    G -. consulta .-> EU[Eureka Server :8761]
-    AU & US & PR & PV & IN & CA & PE & FA & EN & SU -. registro .-> EU
+### Arquitectura interna de los microservicios
 
-    AU --> DBA[(MySQL)]
-    US --> DBU[(MySQL)]
-    PR --> DBP[(MySQL)]
-    PV --> DBPV[(MySQL)]
-    IN --> DBI[(MySQL)]
-    CA --> DBC[(MySQL)]
-    PE --> DBPE[(MySQL)]
-    FA --> DBF[(MySQL)]
-    EN --> DBE[(MySQL)]
-    SU --> DBS[(MySQL)]
-    VE --> DBV[(MySQL)]
+```text
+src/main/java/cl/duoc/<microservicio>/
+├── client/                 # Comunicación con otros microservicios
+├── config/                 # Configuración de Swagger y componentes
+├── controller/             # Endpoints de la API REST
+├── dto/                    # Objetos de entrada, salida y errores
+│   ├── request/            # Datos recibidos por la API
+│   └── response/           # Datos entregados al cliente
+├── exception/              # Excepciones y manejo global de errores
+├── model/                  # Entidades persistidas con JPA
+├── repository/             # Acceso a datos con Spring Data JPA
+├── security/               # Filtros JWT y reglas de autorización
+├── service/                # Lógica y reglas de negocio
+└── <Servicio>Application.java
+```
+
+La estructura puede variar ligeramente según la responsabilidad de cada
+servicio. Por ejemplo, los módulos que no consumen otras APIs no necesitan el
+paquete `client`.
+
+### Flujo entre capas
+
+```text
+Solicitud HTTP
+    │
+    ▼
+Controller       Recibe la solicitud y valida el DTO
+    │
+    ▼
+Service          Aplica las reglas de negocio
+    │
+    ▼
+Repository       Ejecuta las operaciones de persistencia
+    │
+    ▼
+MySQL            Almacena la información del microservicio
+    │
+    ▼
+DTO Response     Devuelve la respuesta HTTP al cliente
+```
+
+### Comunicación entre microservicios
+
+```text
+Cliente / Postman / Swagger
+└── API Gateway :8080
+    ├── Autenticación y Usuarios
+    ├── Productos, Proveedores e Inventario
+    ├── Carrito y Pedidos
+    ├── Facturación y Envíos
+    └── Sucursales y Comunas
+
+Eureka Server :8761
+└── Registro y descubrimiento de servicios
+
+Cada microservicio
+└── Base de datos MySQL independiente
 ```
 
 ### Principios aplicados
 
-- Separación por dominios de negocio.
-- Arquitectura en capas: Controller, Service, Repository y Model.
+- Separación de responsabilidades por capas.
+- Separación de dominios mediante microservicios.
 - DTOs específicos para solicitudes y respuestas.
-- Persistencia independiente por microservicio.
+- Persistencia independiente por servicio.
 - Migraciones de esquema y datos con Flyway.
-- Autenticación stateless con tokens JWT.
-- Descubrimiento de servicios mediante Eureka.
-- Enrutamiento centralizado mediante API Gateway.
+- Autenticación stateless mediante JWT.
+- Registro y descubrimiento con Eureka.
+- Enrutamiento centralizado con API Gateway.
 - Configuración diferenciada por ambiente.
 
 ## Tecnologías
