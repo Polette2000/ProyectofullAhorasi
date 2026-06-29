@@ -13,7 +13,7 @@ services:
     container_name: mysql-producto
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-system}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Debes definir MYSQL_ROOT_PASSWORD en .env}
     volumes:
       - mysql_producto_data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
@@ -31,9 +31,9 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-system}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Debes definir MYSQL_ROOT_PASSWORD en .env}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      JWT_SECRET: ${JWT_SECRET:-clave_secreta_perfulandia_123456789_usuarios}
+      JWT_SECRET: ${JWT_SECRET:?Debes definir JWT_SECRET en .env}
     ports:
       - "8084:8084"
     depends_on:

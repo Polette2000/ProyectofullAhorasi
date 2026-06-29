@@ -193,10 +193,11 @@ http://localhost:8080/api/v1/billing
 http://localhost:8080/api/v1/envios
 http://localhost:8080/api/v1/sucursales
 http://localhost:8080/api/v1/comunas
+http://localhost:8080/api/v1/ventas
 ```
 
-El servicio de Ventas se consume directamente en el puerto `8091`, ya que no
-tiene una ruta definida en la configuración actual del Gateway.
+Todas las rutas anteriores, incluida Ventas, están centralizadas en el Gateway.
+Cada destino se resuelve por el nombre con que el servicio se registra en Eureka.
 
 ## Documentación de APIs
 
@@ -250,6 +251,14 @@ aplicadas en `flyway_schema_history`.
 - Maven 3.9 o Maven Wrapper.
 - MySQL 8.
 
+Antes de iniciar los servicios, definir las credenciales mediante variables de
+entorno. No se almacenan contraseñas ni claves JWT en el código fuente:
+
+```powershell
+$env:SPRING_DATASOURCE_PASSWORD="<password-mysql>"
+$env:JWT_SECRET="<clave-jwt-de-al-menos-32-caracteres>"
+```
+
 1. Crear las bases de datos con el script incluido.
 2. Iniciar `eureka-server`.
 3. Iniciar los microservicios requeridos con el perfil `dev`.
@@ -285,6 +294,8 @@ mvn test
 ```
 
 Los resultados se generan en `target/surefire-reports` dentro de cada módulo.
+Antes de la entrega se debe comprobar que las pruebas permanezcan exitosas y que
+la cobertura sea al menos 80%, como exige la rúbrica.
 
 ## Alcance de la defensa
 
@@ -304,6 +315,14 @@ docker compose up --build -d
 docker compose ps
 ```
 
+Docker Compose lee `MYSQL_ROOT_PASSWORD` y `JWT_SECRET` desde el archivo `.env`,
+que no se versiona. Para preparar el entorno por primera vez:
+
+```powershell
+Copy-Item .env.example .env
+# Editar .env y reemplazar ambos valores antes de iniciar Docker.
+```
+
 Comprobaciones principales:
 
 | Recurso | URL |
@@ -313,8 +332,9 @@ Comprobaciones principales:
 | Swagger de Producto | <http://localhost:8084/doc/swagger-ui.html> |
 | Producto por Gateway | <http://localhost:8080/api/v1/productos> |
 
-La suite seleccionada contiene 8 pruebas de Producto: 5 unitarias con Mockito y
-3 de integración con JPA, H2 y Flyway.
+La suite seleccionada contiene 27 pruebas de Producto: 24 unitarias y 3 de
+integración con JPA, H2 y Flyway. Las pruebas cubren Service, Controller,
+seguridad JWT, manejo de excepciones, configuración Swagger y Repository.
 
 ```powershell
 cd producto
@@ -324,9 +344,18 @@ mvn test
 Resultado verificado:
 
 ```text
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
+
+### Ejecución remota
+
+El mismo entorno puede desplegarse en una máquina remota que disponga de Docker
+Compose. Se debe clonar el repositorio, crear `.env` a partir de `.env.example`,
+configurar las variables seguras y ejecutar `docker compose up --build -d`.
+Los puertos `8080`, `8084` y `8761` deben habilitarse en el firewall de la
+plataforma. Esta sección describe el procedimiento; la URL y evidencia del
+proveedor remoto deben agregarse cuando el equipo efectüe ese despliegue.
 
 ## Estructura del repositorio
 

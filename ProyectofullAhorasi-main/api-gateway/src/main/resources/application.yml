@@ -74,6 +74,11 @@ spring:
               predicates:
                 - Path=/api/v1/comunas/**
 
+            - id: ventas-service
+              uri: lb://VENTAS-SERVICE
+              predicates:
+                - Path=/api/v1/ventas/**
+
 eureka:
   client:
     service-url:

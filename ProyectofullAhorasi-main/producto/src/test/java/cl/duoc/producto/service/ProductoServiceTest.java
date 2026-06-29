@@ -131,6 +131,52 @@ class ProductoServiceTest {
         verify(productoRepository, never()).delete(any(Producto.class));
     }
 
+    @Test
+    void eliminarProductoDebeEliminarCuandoExiste() {
+        Producto producto = crearProducto(7L, "Perfume Eliminable", "Descripcion", 15990);
+        when(productoRepository.findById(7L)).thenReturn(Optional.of(producto));
+
+        productoService.eliminarProducto(7L);
+
+        verify(productoRepository).delete(producto);
+    }
+
+    @Test
+    void buscarPorNombreDebeRetornarCoincidencias() {
+        Producto producto = crearProducto(3L, "Perfume Floral", "Aroma floral", 18990);
+        when(productoRepository.findByNombreContainingIgnoreCase("floral"))
+                .thenReturn(List.of(producto));
+
+        List<ProductoResponse> resultado = productoService.buscarPorNombre("floral");
+
+        assertThat(resultado)
+                .extracting(ProductoResponse::getNombre)
+                .containsExactly("Perfume Floral");
+    }
+
+    @Test
+    void buscarPorIdDebeFallarCuandoNoExiste() {
+        when(productoRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> productoService.buscarPorId(404L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Producto no encontrado con ID: 404");
+    }
+
+    @Test
+    void actualizarProductoDebeFallarCuandoNoExiste() {
+        ProductoUpdateRequest request = new ProductoUpdateRequest(
+                "Perfume inexistente",
+                "Descripcion",
+                10000);
+        when(productoRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> productoService.actualizarProducto(404L, request))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Producto no encontrado con ID: 404");
+        verify(productoRepository, never()).save(any(Producto.class));
+    }
+
     // Metodo auxiliar para no repetir la construccion de productos en cada test.
     private Producto crearProducto(Long idProducto, String nombre, String descripcion, Integer precio) {
         return Producto.builder()
